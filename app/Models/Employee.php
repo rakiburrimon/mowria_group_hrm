@@ -20,7 +20,8 @@ class Employee extends Model
         'position',
         'hire_date',
         'salary',
-        'status'
+        'status',
+        'profile_image'
     ];
 
     protected $casts = [
