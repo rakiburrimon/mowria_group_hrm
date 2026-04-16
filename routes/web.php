@@ -37,3 +37,45 @@ Route::middleware('auth')->prefix('employees')->group(function () {
     Route::put('/{employee}/status', [EmployeeController::class, 'updateStatus'])->name('employees.updateStatus');
     Route::get('/statistics', [EmployeeController::class, 'statistics'])->name('employees.statistics');
 });
+
+// Leave Management Routes (requires authentication)
+Route::middleware('auth')->prefix('leaves')->group(function () {
+    Route::get('/', [LeaveController::class, 'index'])->name('leaves.index');
+    Route::get('/create', [LeaveController::class, 'create'])->name('leaves.create');
+    Route::post('/', [LeaveController::class, 'store'])->name('leaves.store');
+    Route::get('/{leave}', [LeaveController::class, 'show'])->name('leaves.show');
+    Route::get('/{leave}/edit', [LeaveController::class, 'edit'])->name('leaves.edit');
+    Route::put('/{leave}', [LeaveController::class, 'update'])->name('leaves.update');
+    Route::delete('/{leave}', [LeaveController::class, 'destroy'])->name('leaves.destroy');
+    
+    // Admin approval panel
+    Route::get('/approval-panel', [LeaveController::class, 'approvalPanel'])->name('leaves.approvalPanel');
+    Route::post('/{leave}/approve', [LeaveController::class, 'approve'])->name('leaves.approve');
+    
+    // Leave balance
+    Route::get('/balance', [LeaveController::class, 'leaveBalance'])->name('leaves.balance');
+});
+
+// Attendance Management Routes (requires authentication)
+Route::middleware('auth')->prefix('attendance')->group(function () {
+    Route::get('/', [AttendanceController::class, 'index'])->name('attendance.index');
+    Route::get('/create', [AttendanceController::class, 'create'])->name('attendance.create');
+    Route::post('/', [AttendanceController::class, 'store'])->name('attendance.store');
+    Route::get('/{attendance}', [AttendanceController::class, 'show'])->name('attendance.show');
+    Route::get('/{attendance}/edit', [AttendanceController::class, 'edit'])->name('attendance.edit');
+    Route::put('/{attendance}', [AttendanceController::class, 'update'])->name('attendance.update');
+    Route::delete('/{attendance}', [AttendanceController::class, 'destroy'])->name('attendance.destroy');
+    
+    // Monthly view
+    Route::get('/monthly', [AttendanceController::class, 'monthlyView'])->name('attendance.monthly');
+    
+    // Reports
+    Route::get('/reports', [AttendanceController::class, 'reports'])->name('attendance.reports');
+    
+    // Check-in/Check-out
+    Route::post('/check-in', [AttendanceController::class, 'checkIn'])->name('attendance.checkIn');
+    Route::post('/check-out', [AttendanceController::class, 'checkOut'])->name('attendance.checkOut');
+    
+    // Statistics
+    Route::get('/statistics', [AttendanceController::class, 'statistics'])->name('attendance.statistics');
+});

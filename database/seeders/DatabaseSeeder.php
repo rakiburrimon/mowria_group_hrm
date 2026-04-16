@@ -113,6 +113,12 @@ class DatabaseSeeder extends Seeder
             Employee::create(array_merge($employeeData, ['user_id' => $user->id]));
         }
 
+        // Create leave types
+        $this->createLeaveTypes();
+        
+        // Create leave balances for all employees
+        $this->createLeaveBalances();
+        
         // Create sample attendance records
         $this->createAttendanceRecords();
         
@@ -180,6 +186,89 @@ class DatabaseSeeder extends Seeder
                     'status' => $statuses[array_rand($statuses)],
                     'approved_by' => 2, // Jane Smith (HR Manager)
                     'remarks' => 'Processed by HR',
+                ]);
+            }
+        }
+    }
+
+    private function createLeaveTypes()
+    {
+        $leaveTypes = [
+            [
+                'name' => 'Annual Leave',
+                'code' => 'annual',
+                'description' => 'Paid annual leave for employees',
+                'max_days_per_year' => 21,
+                'requires_approval' => true,
+                'allow_carry_over' => true,
+                'is_active' => true,
+                'color_code' => '#007bff',
+            ],
+            [
+                'name' => 'Sick Leave',
+                'code' => 'sick',
+                'description' => 'Paid sick leave for medical reasons',
+                'max_days_per_year' => 10,
+                'requires_approval' => false,
+                'allow_carry_over' => false,
+                'is_active' => true,
+                'color_code' => '#28a745',
+            ],
+            [
+                'name' => 'Personal Leave',
+                'code' => 'personal',
+                'description' => 'Personal leave for personal matters',
+                'max_days_per_year' => 5,
+                'requires_approval' => true,
+                'allow_carry_over' => false,
+                'is_active' => true,
+                'color_code' => '#ffc107',
+            ],
+            [
+                'name' => 'Maternity Leave',
+                'code' => 'maternity',
+                'description' => 'Paid maternity leave for new mothers',
+                'max_days_per_year' => 90,
+                'requires_approval' => true,
+                'allow_carry_over' => false,
+                'is_active' => true,
+                'color_code' => '#e83e8c',
+            ],
+            [
+                'name' => 'Paternity Leave',
+                'code' => 'paternity',
+                'description' => 'Paid paternity leave for new fathers',
+                'max_days_per_year' => 14,
+                'requires_approval' => true,
+                'allow_carry_over' => false,
+                'is_active' => true,
+                'color_code' => '#6f42c1',
+            ],
+        ];
+
+        foreach ($leaveTypes as $leaveType) {
+            \App\Models\LeaveType::create($leaveType);
+        }
+    }
+
+    private function createLeaveBalances()
+    {
+        $employees = Employee::all();
+        $leaveTypes = \App\Models\LeaveType::all();
+        $currentYear = Carbon::now()->year;
+
+        foreach ($employees as $employee) {
+            foreach ($leaveTypes as $leaveType) {
+                // Create leave balance for each employee and leave type
+                \App\Models\LeaveBalance::create([
+                    'employee_id' => $employee->id,
+                    'leave_type' => $leaveType->code,
+                    'total_days' => $leaveType->max_days_per_year,
+                    'used_days' => 0,
+                    'remaining_days' => $leaveType->max_days_per_year,
+                    'year' => $currentYear,
+                    'carry_over' => 0,
+                    'notes' => 'Initial balance for ' . $currentYear,
                 ]);
             }
         }
