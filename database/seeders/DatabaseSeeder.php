@@ -3,8 +3,14 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Models\Employee;
+use App\Models\Department;
+use App\Models\Attendance;
+use App\Models\Leave;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
+use Carbon\Carbon;
 
 class DatabaseSeeder extends Seeder
 {
@@ -15,11 +21,167 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Create departments
+        $departments = [
+            ['name' => 'Information Technology', 'description' => 'IT and software development', 'status' => 'active'],
+            ['name' => 'Human Resources', 'description' => 'HR and administration', 'status' => 'active'],
+            ['name' => 'Finance', 'description' => 'Accounting and finance', 'status' => 'active'],
+            ['name' => 'Marketing', 'description' => 'Marketing and sales', 'status' => 'active'],
+        ];
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        foreach ($departments as $dept) {
+            Department::create($dept);
+        }
+
+        // Create test users with employee profiles
+        $testUsers = [
+            [
+                'name' => 'John Doe',
+                'email' => 'john.doe@company.com',
+                'password' => Hash::make('password123'),
+                'employee_data' => [
+                    'employee_id' => 'EMP001',
+                    'first_name' => 'John',
+                    'last_name' => 'Doe',
+                    'email' => 'john.doe@company.com',
+                    'phone' => '+1234567890',
+                    'position' => 'Senior Developer',
+                    'department_id' => 1, // IT
+                    'hire_date' => '2022-01-15',
+                    'salary' => 75000.00,
+                    'status' => 'active',
+                ]
+            ],
+            [
+                'name' => 'Jane Smith',
+                'email' => 'jane.smith@company.com',
+                'password' => Hash::make('password123'),
+                'employee_data' => [
+                    'employee_id' => 'EMP002',
+                    'first_name' => 'Jane',
+                    'last_name' => 'Smith',
+                    'email' => 'jane.smith@company.com',
+                    'phone' => '+1234567891',
+                    'position' => 'HR Manager',
+                    'department_id' => 2, // HR
+                    'hire_date' => '2021-03-20',
+                    'salary' => 65000.00,
+                    'status' => 'active',
+                ]
+            ],
+            [
+                'name' => 'Mike Johnson',
+                'email' => 'mike.johnson@company.com',
+                'password' => Hash::make('password123'),
+                'employee_data' => [
+                    'employee_id' => 'EMP003',
+                    'first_name' => 'Mike',
+                    'last_name' => 'Johnson',
+                    'email' => 'mike.johnson@company.com',
+                    'phone' => '+1234567892',
+                    'position' => 'Accountant',
+                    'department_id' => 3, // Finance
+                    'hire_date' => '2020-06-10',
+                    'salary' => 55000.00,
+                    'status' => 'active',
+                ]
+            ],
+            [
+                'name' => 'Sarah Wilson',
+                'email' => 'sarah.wilson@company.com',
+                'password' => Hash::make('password123'),
+                'employee_data' => [
+                    'employee_id' => 'EMP004',
+                    'first_name' => 'Sarah',
+                    'last_name' => 'Wilson',
+                    'email' => 'sarah.wilson@company.com',
+                    'phone' => '+1234567893',
+                    'position' => 'Marketing Manager',
+                    'department_id' => 4, // Marketing
+                    'hire_date' => '2023-02-01',
+                    'salary' => 60000.00,
+                    'status' => 'active',
+                ]
+            ],
+        ];
+
+        foreach ($testUsers as $userData) {
+            $employeeData = $userData['employee_data'];
+            unset($userData['employee_data']);
+
+            $user = User::create($userData);
+            Employee::create(array_merge($employeeData, ['user_id' => $user->id]));
+        }
+
+        // Create sample attendance records
+        $this->createAttendanceRecords();
+        
+        // Create sample leave records
+        $this->createLeaveRecords();
+    }
+
+    private function createAttendanceRecords()
+    {
+        $employees = Employee::all();
+        $startDate = Carbon::now()->subDays(30);
+        
+        foreach ($employees as $employee) {
+            for ($i = 0; $i < 30; $i++) {
+                $date = $startDate->copy()->addDays($i);
+                
+                // Skip weekends
+                if ($date->isWeekend()) {
+                    continue;
+                }
+
+                // Random attendance status
+                $statuses = ['present', 'present', 'present', 'present', 'late', 'absent'];
+                $status = $statuses[array_rand($statuses)];
+                
+                $attendanceData = [
+                    'employee_id' => $employee->id,
+                    'date' => $date->format('Y-m-d'),
+                    'status' => $status,
+                ];
+
+                if ($status === 'present' || $status === 'late') {
+                    $attendanceData['check_in'] = $status === 'late' ? '09:15' : '08:45';
+                    $attendanceData['check_out'] = '17:30';
+                }
+
+                Attendance::create($attendanceData);
+            }
+        }
+    }
+
+    private function createLeaveRecords()
+    {
+        $employees = Employee::all();
+        
+        foreach ($employees as $employee) {
+            // Create 1-3 leave requests per employee
+            $leaveCount = rand(1, 3);
+            
+            for ($i = 0; $i < $leaveCount; $i++) {
+                $startDate = Carbon::now()->addDays(rand(10, 60))->startOfDay();
+                $days = rand(1, 5);
+                $endDate = $startDate->copy()->addDays($days - 1);
+                
+                $types = ['annual', 'sick', 'personal'];
+                $statuses = ['approved', 'pending', 'rejected'];
+                
+                Leave::create([
+                    'employee_id' => $employee->id,
+                    'type' => $types[array_rand($types)],
+                    'start_date' => $startDate,
+                    'end_date' => $endDate,
+                    'days' => $days,
+                    'reason' => 'Sample leave request',
+                    'status' => $statuses[array_rand($statuses)],
+                    'approved_by' => 2, // Jane Smith (HR Manager)
+                    'remarks' => 'Processed by HR',
+                ]);
+            }
+        }
     }
 }
