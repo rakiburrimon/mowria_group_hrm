@@ -57,6 +57,9 @@ class RolePermissionSeeder extends Seeder
 
         // Activity log
         ['slug' => 'activity-logs.view', 'name' => 'View the activity log'],
+
+        // Settings
+        ['slug' => 'settings.manage', 'name' => 'Manage application settings'],
     ];
 
     /**
@@ -90,6 +93,7 @@ class RolePermissionSeeder extends Seeder
                 'departments.manage',
                 'admin.dashboard',
                 'activity-logs.view',
+                'settings.manage',
             ],
             User::ROLE_EMPLOYEE => [
                 'employees.view.own',

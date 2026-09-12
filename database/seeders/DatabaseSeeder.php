@@ -39,6 +39,9 @@ class DatabaseSeeder extends Seeder
         // Create role-based login accounts (super_admin, admin, employee)
         $this->call(UserRoleSeeder::class);
 
+        // Seed application settings (company, attendance, leave, system, notifications)
+        $this->call(SettingSeeder::class);
+
         // Create test users with employee profiles
         $testUsers = [
             [

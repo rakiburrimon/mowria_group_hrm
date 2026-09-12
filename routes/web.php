@@ -7,6 +7,7 @@ use App\Http\Controllers\LeaveController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\ActivityLogController;
+use App\Http\Controllers\SettingController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -90,4 +91,10 @@ Route::middleware('auth')->prefix('attendance')->group(function () {
 Route::middleware(['auth', 'permission:activity-logs.view'])->prefix('activity-logs')->group(function () {
     Route::get('/', [ActivityLogController::class, 'index'])->name('activity-logs.index');
     Route::get('/{activity}', [ActivityLogController::class, 'show'])->name('activity-logs.show');
+});
+
+// Settings (requires authentication + permission)
+Route::middleware(['auth', 'permission:settings.manage'])->prefix('settings')->group(function () {
+    Route::get('/', [SettingController::class, 'index'])->name('settings.index');
+    Route::put('/', [SettingController::class, 'update'])->name('settings.update');
 });

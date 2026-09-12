@@ -304,7 +304,7 @@
                 <a class="sidebar-link {{ request()->routeIs('activity-logs.*') ? 'active' : '' }}" href="{{ route('activity-logs.index') }}">
                     <i class="fas fa-history"></i> Activity Log
                 </a>
-                <a class="sidebar-link" href="#">
+                <a class="sidebar-link {{ request()->routeIs('settings.*') ? 'active' : '' }}" href="{{ route('settings.index') }}">
                     <i class="fas fa-cog"></i> Settings
                 </a>
             @endif
@@ -359,8 +359,22 @@
         </main>
     </div>
 
+    @php
+        $toastPosition = \App\Models\Setting::get('toast_position', 'top-right');
+        $toastDelay = (int) \App\Models\Setting::get('toast_delay', 4000);
+        $toastAutohide = \App\Models\Setting::get('toast_autohide', '1') === '1';
+        $toastIcons = \App\Models\Setting::get('toast_show_icons', '1') === '1';
+        $toastPositions = [
+            'top-right' => 'top-0 end-0',
+            'top-left' => 'top-0 start-0',
+            'top-center' => 'top-0 start-50 translate-middle-x',
+            'bottom-right' => 'bottom-0 end-0',
+            'bottom-left' => 'bottom-0 start-0',
+        ];
+    @endphp
+
     <!-- Toast notifications -->
-    <div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer" style="z-index: 2000;"></div>
+    <div class="toast-container position-fixed p-3 {{ $toastPositions[$toastPosition] ?? 'top-0 end-0' }}" id="toastContainer" style="z-index: 2000;"></div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -381,14 +395,19 @@
             backdrop.classList.remove('show');
         });
 
+        // Toaster settings (from the settings page)
+        const TOAST_DELAY = {{ $toastDelay }};
+        const TOAST_AUTOHIDE = {{ $toastAutohide ? 'true' : 'false' }};
+        const TOAST_ICONS = {{ $toastIcons ? 'true' : 'false' }};
+
         /**
          * Show a toast notification.
          *
          * @param {string} type    success | error | danger | warning | info | primary
          * @param {string} message Message to display
-         * @param {number} delay   Auto-hide delay in ms (0 = sticky)
+         * @param {number} delay   Auto-hide delay in ms (defaults to settings value)
          */
-        function showToast(type, message, delay = 4000) {
+        function showToast(type, message, delay = TOAST_DELAY) {
             const styles = {
                 success: { cls: 'text-bg-success', icon: 'fa-check-circle' },
                 error:   { cls: 'text-bg-danger',  icon: 'fa-times-circle' },
@@ -401,14 +420,15 @@
             const toastEl = document.createElement('div');
             toastEl.className = `toast align-items-center ${style.cls} border-0`;
             toastEl.setAttribute('role', 'alert');
+            const icon = TOAST_ICONS ? `<i class="fas ${style.icon} me-2"></i>` : '';
             toastEl.innerHTML = `
                 <div class="d-flex">
-                    <div class="toast-body"><i class="fas ${style.icon} me-2"></i>${message}</div>
+                    <div class="toast-body">${icon}${message}</div>
                     <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
                 </div>`;
 
             document.getElementById('toastContainer').appendChild(toastEl);
-            const toast = new bootstrap.Toast(toastEl, { delay });
+            const toast = new bootstrap.Toast(toastEl, { delay, autohide: TOAST_AUTOHIDE });
             toast.show();
             toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
         }
@@ -421,7 +441,7 @@
         @endforeach
 
         // Render validation / error bag as toasts
-        @if ($errors->any())
+        @if (isset($errors) && $errors->any())
             @foreach ($errors->all() as $error)
                 showToast('error', @json($error));
             @endforeach
