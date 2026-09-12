@@ -2,6 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PrivateDashboardController;
+use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\LeaveController;
+use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\Auth\LoginController;
 
 Route::get('/', function () {
@@ -19,7 +22,9 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->midd
 // Private Dashboard Routes (requires authentication)
 Route::middleware('auth')->prefix('dashboard')->group(function () {
     Route::get('/private', [PrivateDashboardController::class, 'index'])->name('dashboard.private');
-    Route::get('/admin', [App\Http\Controllers\AdvancedDashboardController::class, 'index'])->name('dashboard.admin');
+    Route::get('/admin', [App\Http\Controllers\AdvancedDashboardController::class, 'index'])
+        ->middleware('permission:admin.dashboard')
+        ->name('dashboard.admin');
 });
 
 // Employee Routes (requires authentication)

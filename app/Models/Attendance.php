@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\LogsModelActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 
 class Attendance extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsModelActivity;
 
     protected $fillable = [
         'employee_id',

@@ -33,6 +33,12 @@ class DatabaseSeeder extends Seeder
             Department::create($dept);
         }
 
+        // Create the core roles and permissions before creating users
+        $this->call(RolePermissionSeeder::class);
+
+        // Create role-based login accounts (super_admin, admin, employee)
+        $this->call(UserRoleSeeder::class);
+
         // Create test users with employee profiles
         $testUsers = [
             [

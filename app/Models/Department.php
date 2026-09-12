@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\LogsModelActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Department extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsModelActivity;
 
     protected $fillable = [
         'name',

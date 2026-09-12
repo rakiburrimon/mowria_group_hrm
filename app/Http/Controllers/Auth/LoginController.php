@@ -30,6 +30,9 @@ class LoginController extends Controller
         if (Auth::attempt($credentials, $request->filled('remember'))) {
             $request->session()->regenerate();
 
+            // Log the login event for audit and tracing
+            activity()->causedBy(Auth::user())->log('user logged in');
+
             // Redirect to intended URL or dashboard
             return redirect()->intended(route('dashboard.private'));
         }
@@ -44,7 +47,14 @@ class LoginController extends Controller
      */
     public function logout(Request $request)
     {
+        $user = Auth::user();
+
         Auth::logout();
+
+        // Log the logout event for audit and tracing
+        if ($user) {
+            activity()->causedBy($user)->log('user logged out');
+        }
 
         $request->session()->invalidate();
 
