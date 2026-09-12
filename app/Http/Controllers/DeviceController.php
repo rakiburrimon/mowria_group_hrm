@@ -48,6 +48,39 @@ class DeviceController extends Controller
     }
 
     /**
+     * Import a USB export file from the device — .dat/.txt dumps.
+     * Auto-detects attendance logs vs user lists by content.
+     */
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:dat,txt|max:10240',
+        ]);
+
+        $body = $request->file('file')->get();
+        $parser = new \App\Services\Zkteco\DeviceDataParser();
+
+        // Detect type: user dumps have Name=/Pri= or names; attlogs are mostly timestamps
+        $first = strtok($body, "\r\n") ?: '';
+        $isUsers = str_contains($first, 'Name=') || str_contains($first, 'Pri=');
+
+        $count = $isUsers
+            ? $parser->importUsers($body)
+            : $parser->importAttendance($body);
+
+        activity()->withProperties([
+            'type' => $isUsers ? 'users' : 'attendance',
+            'count' => $count,
+            'file' => $request->file('file')->getClientOriginalName(),
+        ])->log('zkteco data imported from file');
+
+        return redirect()->route('device.index')->with(
+            'success',
+            "Imported {$count} " . ($isUsers ? 'user' : 'attendance') . " record(s)."
+        );
+    }
+
+    /**
      * Queue a user create/update on the device.
      */
     public function setUser(Request $request)

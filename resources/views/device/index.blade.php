@@ -100,6 +100,18 @@
                             <i class="fas fa-sync me-1"></i> Request User List from Device
                         </button>
                     </form>
+
+                    <hr>
+                    <form method="POST" action="{{ route('device.import') }}" enctype="multipart/form-data">
+                        @csrf
+                        <label class="form-label">Import USB export <small class="text-muted">(.dat/.txt — attendance or users)</small></label>
+                        <div class="input-group">
+                            <input type="file" name="file" class="form-control" accept=".dat,.txt" required>
+                            <button type="submit" class="btn btn-outline-primary">
+                                <i class="fas fa-file-import"></i> Import
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

@@ -129,6 +129,7 @@ Route::middleware(['auth', 'permission:device.manage'])->prefix('device')->group
     Route::post('/query-users', [DeviceController::class, 'queryUsers'])->name('device.queryUsers');
     Route::post('/set-user', [DeviceController::class, 'setUser'])->name('device.setUser');
     Route::post('/delete-user', [DeviceController::class, 'deleteUser'])->name('device.deleteUser');
+    Route::post('/import', [DeviceController::class, 'import'])->name('device.import');
 });
 
 // Roles & Permissions (requires authentication + permission)
