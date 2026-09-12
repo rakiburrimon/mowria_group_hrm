@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Employees')
 
@@ -111,124 +111,31 @@
         <div class="card-header">
             <h5 class="mb-0">
                 <i class="fas fa-users me-2"></i>Employees List
-                <span class="badge bg-primary ms-2">{{ $employees->total() }}</span>
             </h5>
         </div>
         <div class="card-body">
-            @if($employees->count() > 0)
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Photo</th>
-                                <th>Employee ID</th>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Department</th>
-                                <th>Position</th>
-                                <th>Status</th>
-                                <th>Hire Date</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($employees as $employee)
-                                <tr>
-                                    <td>
-                                        @if($employee->profile_image)
-                                            <img src="{{ asset('storage/' . $employee->profile_image) }}" 
-                                                 alt="{{ $employee->full_name }}" 
-                                                 class="rounded-circle" 
-                                                 style="width: 40px; height: 40px; object-fit: cover;">
-                                        @else
-                                            <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center" 
-                                                 style="width: 40px; height: 40px;">
-                                                <i class="fas fa-user"></i>
-                                            </div>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-secondary">{{ $employee->employee_id }}</span>
-                                    </td>
-                                    <td>
-                                        <a href="{{ route('employees.show', $employee->id) }}" class="text-decoration-none">
-                                            {{ $employee->full_name }}
-                                        </a>
-                                    </td>
-                                    <td>{{ $employee->email }}</td>
-                                    <td>
-                                        @if($employee->department)
-                                            <span class="badge bg-info">{{ $employee->department->name }}</span>
-                                        @else
-                                            <span class="text-muted">No Department</span>
-                                        @endif
-                                    </td>
-                                    <td>{{ $employee->position }}</td>
-                                    <td>
-                                        @switch($employee->status)
-                                            @case('active')
-                                                <span class="badge bg-success">Active</span>
-                                                @break
-                                            @case('inactive')
-                                                <span class="badge bg-warning">Inactive</span>
-                                                @break
-                                            @case('terminated')
-                                                <span class="badge bg-danger">Terminated</span>
-                                                @break
-                                            @default
-                                                <span class="badge bg-secondary">{{ $employee->status }}</span>
-                                        @endswitch
-                                    </td>
-                                    <td>{{ $employee->hire_date->format('M d, Y') }}</td>
-                                    <td>
-                                        <div class="btn-group btn-group-sm">
-                                            <a href="{{ route('employees.show', $employee->id) }}" 
-                                               class="btn btn-sm btn-outline-primary" 
-                                               title="View">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a href="{{ route('employees.edit', $employee->id) }}" 
-                                               class="btn btn-sm btn-outline-warning" 
-                                               title="Edit">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <form method="POST" 
-                                                  action="{{ route('employees.destroy', $employee->id) }}" 
-                                                  onsubmit="return confirm('Are you sure you want to delete this employee?')">
-                                                @csrf
-                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Pagination -->
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <div>
-                        Showing {{ $employees->firstItem() }} to {{ $employees->lastItem() }} 
-                        of {{ $employees->total() }} entries
-                    </div>
-                    <div>
-                        {{ $employees->links() }}
-                    </div>
-                </div>
-            @else
-                <div class="text-center py-5">
-                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
-                    <h5 class="text-muted">No employees found</h5>
-                    <p class="text-muted">
-                        Try adjusting your search criteria or 
-                        <a href="{{ route('employees.create') }}" class="btn btn-primary">add a new employee</a>
-                    </p>
-                </div>
-            @endif
+            <div class="table-responsive">
+                {{ $dataTable->table(['class' => 'table table-striped table-hover w-100']) }}
+            </div>
         </div>
     </div>
 </div>
 @endsection
+
+@push('scripts')
+{{ $dataTable->scripts() }}
+<script>
+function deleteEmployee(id, url) {
+    if (!confirm('Are you sure you want to delete this employee?')) {
+        return;
+    }
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = url;
+    form.innerHTML = '@csrf<input type="hidden" name="_method" value="DELETE">';
+    document.body.appendChild(form);
+    form.submit();
+}
+</script>
+@endpush

@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'My Leave Requests')
 
@@ -120,111 +120,31 @@
         <div class="card-header">
             <h5 class="mb-0">
                 <i class="fas fa-calendar-alt me-2"></i>Leave History
-                <span class="badge bg-primary ms-2">{{ $leaves->total() }}</span>
             </h5>
         </div>
         <div class="card-body">
-            @if($leaves->count() > 0)
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Leave Type</th>
-                                <th>Start Date</th>
-                                <th>End Date</th>
-                                <th>Days</th>
-                                <th>Reason</th>
-                                <th>Status</th>
-                                <th>Applied On</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($leaves as $leave)
-                                <tr>
-                                    <td>
-                                        <span class="badge" style="background-color: {{ $leave->getLeaveTypeColor() ?? '#6c757d' }};">
-                                            {{ ucfirst($leave->type) }}
-                                        </span>
-                                    </td>
-                                    <td>{{ $leave->start_date->format('M d, Y') }}</td>
-                                    <td>{{ $leave->end_date->format('M d, Y') }}</td>
-                                    <td>{{ $leave->days }}</td>
-                                    <td>
-                                        <span class="text-truncate d-block" style="max-width: 200px;" title="{{ $leave->reason }}">
-                                            {{ Str::limit($leave->reason, 30) }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        @switch($leave->status)
-                                            @case('pending')
-                                                <span class="badge bg-warning">Pending</span>
-                                                @break
-                                            @case('approved')
-                                                <span class="badge bg-success">Approved</span>
-                                                @break
-                                            @case('rejected')
-                                                <span class="badge bg-danger">Rejected</span>
-                                                @break
-                                            @case('cancelled')
-                                                <span class="badge bg-secondary">Cancelled</span>
-                                                @break
-                                            @default
-                                                <span class="badge bg-secondary">{{ $leave->status }}</span>
-                                        @endswitch
-                                    </td>
-                                    <td>{{ $leave->created_at->format('M d, Y') }}</td>
-                                    <td>
-                                        <div class="btn-group btn-group-sm">
-                                            <a href="{{ route('leaves.show', $leave->id) }}" 
-                                               class="btn btn-sm btn-outline-primary" 
-                                               title="View Details">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            @if($leave->status === 'pending')
-                                                <a href="{{ route('leaves.edit', $leave->id) }}" 
-                                                   class="btn btn-sm btn-outline-warning" 
-                                                   title="Edit">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                                <form method="POST" 
-                                                      action="{{ route('leaves.destroy', $leave->id) }}" 
-                                                      onsubmit="return confirm('Are you sure you want to cancel this leave request?')">
-                                                    @csrf
-                                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Cancel">
-                                                        <i class="fas fa-times"></i>
-                                                    </button>
-                                                </form>
-                                            @endif
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Pagination -->
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <div>
-                        Showing {{ $leaves->firstItem() }} to {{ $leaves->lastItem() }} 
-                        of {{ $leaves->total() }} entries
-                    </div>
-                    <div>
-                        {{ $leaves->links() }}
-                    </div>
-                </div>
-            @else
-                <div class="text-center py-5">
-                    <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
-                    <h5 class="text-muted">No leave requests found</h5>
-                    <p class="text-muted">
-                        You haven't applied for any leave yet.
-                        <a href="{{ route('leaves.create') }}" class="btn btn-primary">Apply for Leave</a>
-                    </p>
-                </div>
-            @endif
+            <div class="table-responsive">
+                {{ $dataTable->table(['class' => 'table table-striped table-hover w-100']) }}
+            </div>
         </div>
     </div>
 </div>
 @endsection
+
+@push('scripts')
+{{ $dataTable->scripts() }}
+<script>
+function cancelLeave(id, url) {
+    if (!confirm('Are you sure you want to cancel this leave request?')) {
+        return;
+    }
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = url;
+    form.innerHTML = '@csrf<input type="hidden" name="_method" value="DELETE">';
+    document.body.appendChild(form);
+    form.submit();
+}
+</script>
+@endpush

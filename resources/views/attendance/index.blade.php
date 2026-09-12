@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Attendance Management')
 
@@ -37,7 +37,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h4 class="mb-0" id="todayPresentCount">{{ $attendances->where('status', 'present')->count() }}</h4>
+                            <h4 class="mb-0" id="todayPresentCount">{{ $stats['today_present'] }}</h4>
                             <p class="mb-0">Present Today</p>
                         </div>
                         <div class="align-self-center">
@@ -52,7 +52,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h4 class="mb-0" id="todayAbsentCount">{{ $attendances->where('status', 'absent')->count() }}</h4>
+                            <h4 class="mb-0" id="todayAbsentCount">{{ $stats['today_absent'] }}</h4>
                             <p class="mb-0">Absent Today</p>
                         </div>
                         <div class="align-self-center">
@@ -67,7 +67,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h4 class="mb-0" id="todayLateCount">{{ $attendances->where('status', 'late')->count() }}</h4>
+                            <h4 class="mb-0" id="todayLateCount">{{ $stats['today_late'] }}</h4>
                             <p class="mb-0">Late Today</p>
                         </div>
                         <div class="align-self-center">
@@ -82,8 +82,8 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h4 class="mb-0">{{ $attendances->count() }}</h4>
-                            <p class="mb-0">Total Records</p>
+                            <h4 class="mb-0">{{ $stats['month_present'] + $stats['month_absent'] + $stats['month_late'] }}</h4>
+                            <p class="mb-0">Records This Month</p>
                         </div>
                         <div class="align-self-center">
                             <i class="fas fa-list fa-2x"></i>
@@ -187,148 +187,34 @@
         <div class="card-header">
             <h5 class="mb-0">
                 <i class="fas fa-list me-2"></i>Attendance Records
-                <span class="badge bg-primary ms-2">{{ $attendances->total() }}</span>
             </h5>
         </div>
         <div class="card-body">
-            @if($attendances->count() > 0)
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Employee</th>
-                                <th>Department</th>
-                                <th>Date</th>
-                                <th>Check In</th>
-                                <th>Check Out</th>
-                                <th>Work Hours</th>
-                                <th>Late</th>
-                                <th>Early Leave</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($attendances as $attendance)
-                                <tr>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="me-2">
-                                                @if($attendance->employee->profile_image)
-                                                    <img src="{{ asset('storage/' . $attendance->employee->profile_image) }}" 
-                                                         alt="{{ $attendance->employee->full_name }}" 
-                                                         class="rounded-circle" 
-                                                         style="width: 32px; height: 32px; object-fit: cover;">
-                                                @else
-                                                    <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center" 
-                                                         style="width: 32px; height: 32px;">
-                                                        <i class="fas fa-user fa-sm"></i>
-                                                    </div>
-                                                @endif
-                                            </div>
-                                            <div>
-                                                <div class="fw-bold">{{ $attendance->employee->full_name }}</div>
-                                                <small class="text-muted">{{ $attendance->employee->employee_id }}</small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-info">{{ $attendance->employee->department->name }}</span>
-                                    </td>
-                                    <td>{{ $attendance->date->format('M d, Y') }}</td>
-                                    <td>
-                                        @if($attendance->check_in)
-                                            <span class="text-success fw-bold">{{ $attendance->check_in }}</span>
-                                        @else
-                                            <span class="text-muted">-</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @if($attendance->check_out)
-                                            <span class="text-danger fw-bold">{{ $attendance->check_out }}</span>
-                                        @else
-                                            <span class="text-muted">-</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @if($attendance->work_hours)
-                                            <span class="text-primary fw-bold">{{ $attendance->formatted_work_hours }}</span>
-                                        @else
-                                            <span class="text-muted">-</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @if($attendance->late_minutes > 0)
-                                            <span class="text-warning fw-bold">{{ $attendance->late_minutes }} min</span>
-                                        @else
-                                            <span class="text-success fw-bold">On Time</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @if($attendance->early_leave_minutes > 0)
-                                            <span class="text-warning fw-bold">{{ $attendance->early_leave_minutes }} min</span>
-                                        @else
-                                            <span class="text-success fw-bold">Full Day</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-{{ $attendance->status_color }}">
-                                            {{ $attendance->status_label }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div class="btn-group btn-group-sm">
-                                            <a href="{{ route('attendance.show', $attendance->id) }}" 
-                                               class="btn btn-sm btn-outline-primary" 
-                                               title="View Details">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a href="{{ route('attendance.edit', $attendance->id) }}" 
-                                               class="btn btn-sm btn-outline-warning" 
-                                               title="Edit">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <form method="POST" 
-                                                  action="{{ route('attendance.destroy', $attendance->id) }}" 
-                                                  onsubmit="return confirm('Are you sure you want to delete this attendance record?')">
-                                                @csrf
-                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Pagination -->
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <div>
-                        Showing {{ $attendances->firstItem() }} to {{ $attendances->lastItem() }} 
-                        of {{ $attendances->total() }} entries
-                    </div>
-                    <div>
-                        {{ $attendances->links() }}
-                    </div>
-                </div>
-            @else
-                <div class="text-center py-5">
-                    <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
-                    <h5 class="text-muted">No attendance records found</h5>
-                    <p class="text-muted">
-                        Try adjusting your search criteria or 
-                        <a href="{{ route('attendance.create') }}" class="btn btn-primary">add attendance records</a>
-                    </p>
-                </div>
-            @endif
+            <div class="table-responsive">
+                {{ $dataTable->table(['class' => 'table table-striped table-hover w-100']) }}
+            </div>
         </div>
     </div>
 </div>
 
+@endsection
+
+@push('scripts')
+{{ $dataTable->scripts() }}
 <script>
+function deleteAttendance(id, url) {
+    if (!confirm('Are you sure you want to delete this attendance record?')) {
+        return;
+    }
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = url;
+    form.innerHTML = '@csrf<input type="hidden" name="_method" value="DELETE">';
+    document.body.appendChild(form);
+    form.submit();
+}
+
 function checkIn() {
     fetch('{{ route('attendance.checkIn') }}', {
         method: 'POST',
@@ -340,15 +226,13 @@ function checkIn() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showAlert('success', data.message);
-            setTimeout(() => location.reload(), 2000);
+            showToast('success', data.message);
+            refreshAttendance();
         } else {
-            showAlert('error', data.message);
+            showToast('error', data.message);
         }
     })
-    .catch(error => {
-        showAlert('error', 'An error occurred while checking in.');
-    });
+    .catch(() => showToast('error', 'An error occurred while checking in.'));
 }
 
 function checkOut() {
@@ -362,29 +246,34 @@ function checkOut() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showAlert('success', data.message);
-            setTimeout(() => location.reload(), 2000);
+            showToast('success', data.message);
+            refreshAttendance();
         } else {
-            showAlert('error', data.message);
+            showToast('error', data.message);
         }
     })
-    .catch(error => {
-        showAlert('error', 'An error occurred while checking out.');
-    });
+    .catch(() => showToast('error', 'An error occurred while checking out.'));
 }
 
-function showAlert(type, message) {
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
-    alertDiv.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    `;
-    document.querySelector('.container-fluid').prepend(alertDiv);
-    
-    setTimeout(() => {
-        alertDiv.remove();
-    }, 5000);
+function refreshAttendance() {
+    // Reload the DataTable rows
+    if (window.LaravelDataTables && window.LaravelDataTables['attendances-table']) {
+        window.LaravelDataTables['attendances-table'].ajax.reload(null, false);
+    }
+
+    // Refresh the stat cards
+    fetch('{{ route('attendance.statistics') }}', {
+        headers: { 'Accept': 'application/json' }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('todayPresentCount').textContent = data.data.today_present;
+            document.getElementById('todayAbsentCount').textContent = data.data.today_absent;
+            document.getElementById('todayLateCount').textContent = data.data.today_late;
+        }
+    })
+    .catch(() => {});
 }
 </script>
-@endsection
+@endpush

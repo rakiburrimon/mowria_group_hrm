@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\DataTables\LeaveApprovalsDataTable;
+use App\DataTables\LeavesDataTable;
 use App\Http\Requests\Leave\StoreLeaveRequest;
 use App\Http\Requests\Leave\UpdateLeaveRequest;
 use App\Http\Requests\Leave\ApproveLeaveRequest;
@@ -27,14 +29,13 @@ class LeaveController extends Controller
     /**
      * Display a listing of leaves for the authenticated employee.
      */
-    public function index(Request $request): View
+    public function index(LeavesDataTable $dataTable)
     {
         $employee = Auth::user()->employee;
-        $leaves = $this->leaves->paginateForEmployee($employee, $request->all());
         $leaveTypes = LeaveType::active()->get();
         $leaveBalances = $this->leaves->getLeaveBalance($employee);
 
-        return view('leaves.index', compact('leaves', 'leaveTypes', 'leaveBalances'));
+        return $dataTable->render('leaves.index', compact('leaveTypes', 'leaveBalances'));
     }
 
     /**
@@ -167,13 +168,12 @@ class LeaveController extends Controller
     /**
      * Display admin approval panel.
      */
-    public function approvalPanel(Request $request): View
+    public function approvalPanel(LeaveApprovalsDataTable $dataTable)
     {
-        $leaves = $this->leaves->paginatePending($request->all());
         $departments = $this->departments->active();
         $leaveTypes = LeaveType::active()->get();
 
-        return view('leaves.approval-panel', compact('leaves', 'departments', 'leaveTypes'));
+        return $dataTable->render('leaves.approval-panel', compact('departments', 'leaveTypes'));
     }
 
     /**

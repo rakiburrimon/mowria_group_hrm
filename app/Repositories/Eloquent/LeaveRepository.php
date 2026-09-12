@@ -80,7 +80,7 @@ class LeaveRepository implements LeaveRepositoryInterface
             'rejected' => $leaves->where('status', Leave::STATUS_REJECTED)->count(),
             'cancelled' => $leaves->where('status', Leave::STATUS_CANCELLED)->count(),
             'total_days' => $leaves->where('status', Leave::STATUS_APPROVED)->sum('days'),
-            'by_type' => $leaves->where('status', Leave::STATUS_APPROVED)->groupBy('type')->map->count(),
+            'by_type' => $leaves->where('status', Leave::STATUS_APPROVED)->groupBy('type')->map->count()->toArray(),
         ];
     }
 

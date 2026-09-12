@@ -54,6 +54,9 @@ class RolePermissionSeeder extends Seeder
 
         // Admin dashboard
         ['slug' => 'admin.dashboard', 'name' => 'View the advanced admin dashboard'],
+
+        // Activity log
+        ['slug' => 'activity-logs.view', 'name' => 'View the activity log'],
     ];
 
     /**
@@ -86,6 +89,7 @@ class RolePermissionSeeder extends Seeder
                 'attendance.reports',
                 'departments.manage',
                 'admin.dashboard',
+                'activity-logs.view',
             ],
             User::ROLE_EMPLOYEE => [
                 'employees.view.own',

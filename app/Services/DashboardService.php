@@ -181,8 +181,8 @@ class DashboardService
         return [
             'today' => [
                 'status' => $todayAttendance?->status ?? 'not_marked',
-                'check_in' => $todayAttendance?->check_in,
-                'check_out' => $todayAttendance?->check_out,
+                'check_in' => $todayAttendance?->check_in?->format('H:i'),
+                'check_out' => $todayAttendance?->check_out?->format('H:i'),
                 'notes' => $todayAttendance?->notes,
             ],
             'this_month' => [

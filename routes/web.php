@@ -6,6 +6,7 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\LeaveController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\ActivityLogController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -83,4 +84,10 @@ Route::middleware('auth')->prefix('attendance')->group(function () {
     
     // Statistics
     Route::get('/statistics', [AttendanceController::class, 'statistics'])->name('attendance.statistics');
+});
+
+// Activity Log (requires authentication + permission)
+Route::middleware(['auth', 'permission:activity-logs.view'])->prefix('activity-logs')->group(function () {
+    Route::get('/', [ActivityLogController::class, 'index'])->name('activity-logs.index');
+    Route::get('/{activity}', [ActivityLogController::class, 'show'])->name('activity-logs.show');
 });

@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Leave Approval Panel')
 
@@ -26,7 +26,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <h4 class="mb-0">{{ $leaves->total() }}</h4>
+                            <h4 class="mb-0">{{ \App\Models\Leave::where('status', 'pending')->count() }}</h4>
                             <p class="mb-0">Pending Requests</p>
                         </div>
                         <div class="align-self-center">
@@ -162,111 +162,12 @@
         <div class="card-header">
             <h5 class="mb-0">
                 <i class="fas fa-clock me-2"></i>Pending Leave Requests
-                <span class="badge bg-warning ms-2">{{ $leaves->total() }}</span>
             </h5>
         </div>
         <div class="card-body">
-            @if($leaves->count() > 0)
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Employee</th>
-                                <th>Department</th>
-                                <th>Leave Type</th>
-                                <th>Start Date</th>
-                                <th>End Date</th>
-                                <th>Days</th>
-                                <th>Reason</th>
-                                <th>Applied On</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($leaves as $leave)
-                                <tr>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="me-2">
-                                                @if($leave->employee->profile_image)
-                                                    <img src="{{ asset('storage/' . $leave->employee->profile_image) }}" 
-                                                         alt="{{ $leave->employee->full_name }}" 
-                                                         class="rounded-circle" 
-                                                         style="width: 32px; height: 32px; object-fit: cover;">
-                                                @else
-                                                    <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center" 
-                                                         style="width: 32px; height: 32px;">
-                                                        <i class="fas fa-user fa-sm"></i>
-                                                    </div>
-                                                @endif
-                                            </div>
-                                            <div>
-                                                <div class="fw-bold">{{ $leave->employee->full_name }}</div>
-                                                <small class="text-muted">{{ $leave->employee->employee_id }}</small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-info">{{ $leave->employee->department->name }}</span>
-                                    </td>
-                                    <td>
-                                        <span class="badge" style="background-color: {{ $leave->getLeaveTypeColor() ?? '#6c757d' }};">
-                                            {{ ucfirst($leave->type) }}
-                                        </span>
-                                    </td>
-                                    <td>{{ $leave->start_date->format('M d, Y') }}</td>
-                                    <td>{{ $leave->end_date->format('M d, Y') }}</td>
-                                    <td>{{ $leave->days }}</td>
-                                    <td>
-                                        <span class="text-truncate d-block" style="max-width: 150px;" title="{{ $leave->reason }}">
-                                            {{ Str::limit($leave->reason, 25) }}
-                                        </span>
-                                    </td>
-                                    <td>{{ $leave->created_at->format('M d, Y') }}</td>
-                                    <td>
-                                        <div class="btn-group btn-group-sm">
-                                            <button type="button" 
-                                                    class="btn btn-sm btn-success" 
-                                                    onclick="showApprovalModal({{ $leave->id }}, 'approved')"
-                                                    title="Approve">
-                                                <i class="fas fa-check"></i>
-                                            </button>
-                                            <button type="button" 
-                                                    class="btn btn-sm btn-danger" 
-                                                    onclick="showApprovalModal({{ $leave->id }}, 'rejected')"
-                                                    title="Reject">
-                                                <i class="fas fa-times"></i>
-                                            </button>
-                                            <a href="{{ route('leaves.show', $leave->id) }}" 
-                                               class="btn btn-sm btn-outline-primary" 
-                                               title="View Details">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Pagination -->
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <div>
-                        Showing {{ $leaves->firstItem() }} to {{ $leaves->lastItem() }} 
-                        of {{ $leaves->total() }} entries
-                    </div>
-                    <div>
-                        {{ $leaves->links() }}
-                    </div>
-                </div>
-            @else
-                <div class="text-center py-5">
-                    <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
-                    <h5 class="text-success">No Pending Requests</h5>
-                    <p class="text-muted">All leave requests have been processed.</p>
-                </div>
-            @endif
+            <div class="table-responsive">
+                {{ $dataTable->table(['class' => 'table table-striped table-hover w-100']) }}
+            </div>
         </div>
     </div>
 </div>
@@ -314,7 +215,10 @@
         </div>
     </div>
 </div>
+@endsection
 
+@push('scripts')
+{{ $dataTable->scripts() }}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const approvalModal = new bootstrap.Modal(document.getElementById('approvalModal'));
@@ -370,35 +274,24 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             if (data.success) {
                 approvalModal.hide();
-                // Show success message
-                const alert = document.createElement('div');
-                alert.className = 'alert alert-success alert-dismissible fade show';
-                alert.innerHTML = `
-                    <strong>Success!</strong> ${data.message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                `;
-                document.querySelector('.container-fluid').prepend(alert);
-                
-                // Reload page after 2 seconds
-                setTimeout(() => {
-                    window.location.reload();
-                }, 2000);
+                showToast('success', data.message);
+
+                // Refresh the DataTable without a full page reload
+                if (window.LaravelDataTables && window.LaravelDataTables['leave-approvals-table']) {
+                    window.LaravelDataTables['leave-approvals-table'].ajax.reload();
+                } else {
+                    setTimeout(() => window.location.reload(), 1500);
+                }
             } else {
-                // Show error message
-                const alert = document.createElement('div');
-                alert.className = 'alert alert-danger alert-dismissible fade show';
-                alert.innerHTML = `
-                    <strong>Error!</strong> ${data.message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                `;
-                document.querySelector('.container-fluid').prepend(alert);
+                showToast('error', data.message);
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('An error occurred while processing the request.');
+            showToast('error', 'An error occurred while processing the request.');
         });
     });
 });
 </script>
+@endpush
 @endsection

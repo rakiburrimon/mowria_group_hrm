@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\DataTables\AttendancesDataTable;
 use App\Http\Requests\Attendance\StoreAttendanceRequest;
 use App\Http\Requests\Attendance\UpdateAttendanceRequest;
 use App\Models\Attendance;
@@ -24,15 +25,15 @@ class AttendanceController extends Controller
     ) {}
 
     /**
-     * Display a listing of attendance records.
+     * Display a listing of attendance records (server-side DataTable).
      */
-    public function index(Request $request): View
+    public function index(AttendancesDataTable $dataTable)
     {
-        $attendances = $this->attendances->paginate($request->all());
         $employees = Employee::with('department')->get();
         $departments = $this->departments->active();
+        $stats = $this->attendances->statistics();
 
-        return view('attendance.index', compact('attendances', 'employees', 'departments'));
+        return $dataTable->render('attendance.index', compact('employees', 'departments', 'stats'));
     }
 
     /**

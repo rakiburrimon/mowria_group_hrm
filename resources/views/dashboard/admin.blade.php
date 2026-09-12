@@ -1,323 +1,236 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
-@section('title', 'Advanced Dashboard')
+@section('title', 'Admin Dashboard')
+@section('page_title', 'Dashboard')
+@section('breadcrumb', 'Home / Admin Dashboard')
 
 @section('content')
-<div class="container-fluid">
-    <!-- Page Header -->
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">Advanced Dashboard</h1>
-        <div class="btn-toolbar mb-2 mb-md-0">
-            <div class="btn-group me-2">
-                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="refreshDashboard()">
-                    <i class="fas fa-sync-alt"></i> Refresh
-                </button>
-            </div>
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form id="dashboardFilters" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label for="period" class="form-label small text-muted mb-1">Time Period</label>
+                    <select name="period" id="period" class="form-select" onchange="updateDashboard()">
+                        @foreach($dashboardData['filters']['periods'] as $period)
+                            <option value="{{ $period['value'] }}" {{ request()->get('period') == $period['value'] ? 'selected' : '' }}>
+                                {{ $period['label'] }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="department" class="form-label small text-muted mb-1">Department</label>
+                    <select name="department" id="department" class="form-select" onchange="updateDashboard()">
+                        <option value="">All Departments</option>
+                        @foreach($dashboardData['filters']['departments'] as $department)
+                            <option value="{{ $department['id'] }}" {{ request()->get('department') == $department['id'] ? 'selected' : '' }}>
+                                {{ $department['name'] }} ({{ $department['employee_count'] }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="year" class="form-label small text-muted mb-1">Year</label>
+                    <select name="year" id="year" class="form-select" onchange="updateDashboard()">
+                        <option value="">All Years</option>
+                        @foreach($dashboardData['filters']['years'] as $year)
+                            <option value="{{ $year['value'] }}" {{ request()->get('year') == $year['value'] ? 'selected' : '' }}>
+                                {{ $year['label'] }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3 text-md-end">
+                    <button type="button" class="btn btn-outline-secondary" onclick="refreshDashboard()">
+                        <i class="fas fa-sync-alt me-1"></i> Refresh
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- Filters Row -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-filter me-2"></i>Filters & Analytics
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <form id="dashboardFilters" class="row g-3">
-                        <!-- Period Filter -->
-                        <div class="col-md-3">
-                            <label for="period" class="form-label">Time Period</label>
-                            <select name="period" id="period" class="form-select" onchange="updateDashboard()">
-                                @foreach($dashboardData['filters']['periods'] as $period)
-                                    <option value="{{ $period['value'] }}" {{ request()->get('period') == $period['value'] ? 'selected' : '' }}>
-                                        {{ $period['label'] }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <!-- Department Filter -->
-                        <div class="col-md-3">
-                            <label for="department" class="form-label">Department</label>
-                            <select name="department" id="department" class="form-select" onchange="updateDashboard()">
-                                <option value="">All Departments</option>
-                                @foreach($dashboardData['filters']['departments'] as $department)
-                                    <option value="{{ $department['id'] }}" {{ request()->get('department') == $department['id'] ? 'selected' : '' }}>
-                                        {{ $department['name'] }} ({{ $department['employee_count'] }} employees)
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <!-- Year Filter -->
-                        <div class="col-md-3">
-                            <label for="year" class="form-label">Year</label>
-                            <select name="year" id="year" class="form-select" onchange="updateDashboard()">
-                                <option value="">All Years</option>
-                                @foreach($dashboardData['filters']['years'] as $year)
-                                    <option value="{{ $year['value'] }}" {{ request()->get('year') == $year['value'] ? 'selected' : '' }}>
-                                        {{ $year['label'] }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Stats Overview Cards -->
-    <div class="row mb-4">
-        <!-- Total Employees -->
-        <div class="col-md-3">
-            <div class="card bg-primary text-white">
-                <div class="card-body text-center">
-                    <h3 class="mb-1">{{ $dashboardData['total_employees'] }}</h3>
-                    <div class="small">Total Employees</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Active vs Inactive -->
-        <div class="col-md-3">
-            <div class="card bg-success text-white">
-                <div class="card-body text-center">
-                    <h3 class="mb-1">{{ $dashboardData['active_inactive_employees']['active'] }}</h3>
-                    <div class="small">Active</div>
-                    <div class="progress mt-2" style="height: 10px;">
-                        <div class="progress-bar bg-success" style="width: {{ $dashboardData['active_inactive_employees']['active_percentage'] }}%"></div>
+    <!-- Stat cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-6 col-xl-3">
+            <div class="card stat-card">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="stat-icon bg-accent"><i class="fas fa-users"></i></div>
+                    <div>
+                        <div class="text-muted small">Total Employees</div>
+                        <h3 class="mb-0 fw-bold" id="statTotalEmployees">{{ $dashboardData['total_employees'] }}</h3>
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- Attendance Summary -->
-        <div class="col-md-3">
-            <div class="card bg-info text-white">
-                <div class="card-body text-center">
-                    <h4 class="mb-1">Attendance</h4>
-                    <div class="row text-center">
-                        <div class="col-4">
-                            <div class="small text-muted">Present</div>
-                            <div class="fw-bold">{{ $dashboardData['attendance_summary']['today']['present'] }}</div>
+        <div class="col-md-6 col-xl-3">
+            <div class="card stat-card">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="stat-icon bg-green"><i class="fas fa-user-check"></i></div>
+                    <div class="flex-grow-1">
+                        <div class="text-muted small">Active Employees</div>
+                        <h3 class="mb-1 fw-bold" id="statActive">{{ $dashboardData['active_inactive_employees']['active'] }}</h3>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-success" id="statActiveBar" style="width: {{ $dashboardData['active_inactive_employees']['active_percentage'] }}%"></div>
                         </div>
-                        <div class="col-4">
-                            <div class="small text-muted">Absent</div>
-                            <div class="fw-bold">{{ $dashboardData['attendance_summary']['today']['absent'] }}</div>
-                        </div>
-                        <div class="col-4">
-                            <div class="small text-muted">Late</div>
-                            <div class="fw-bold">{{ $dashboardData['attendance_summary']['today']['late'] }}</div>
-                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <div class="card stat-card">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="stat-icon bg-orange"><i class="fas fa-clock"></i></div>
+                    <div>
+                        <div class="text-muted small">Present Today</div>
+                        <h3 class="mb-0 fw-bold" id="statPresent">{{ $dashboardData['attendance_summary']['today']['present'] }}</h3>
+                        <small class="text-muted">{{ $dashboardData['attendance_summary']['today']['late'] }} late</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <div class="card stat-card">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="stat-icon bg-red"><i class="fas fa-plane-departure"></i></div>
+                    <div>
+                        <div class="text-muted small">Pending Leaves</div>
+                        <h3 class="mb-0 fw-bold" id="statPendingLeaves">{{ $dashboardData['leave_statistics']['pending'] }}</h3>
+                        <small class="text-muted">{{ $dashboardData['leave_statistics']['approved'] }} approved</small>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Charts Row -->
-    <div class="row mb-4">
-        <!-- Attendance Analytics Chart -->
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-chart-line me-2"></i>Attendance Analytics
-                        <small class="text-muted">{{ $dashboardData['analytics']['period'] }} - {{ $dashboardData['analytics']['date_range']['start'] }} to {{ $dashboardData['analytics']['date_range']['end'] }}</small>
-                    </h5>
+    <!-- Charts -->
+    <div class="row g-3 mb-4">
+        <div class="col-lg-8">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-chart-line me-2 text-primary"></i>Attendance Analytics</span>
+                    <small class="text-muted">{{ $dashboardData['analytics']['date_range']['start'] }} &rarr; {{ $dashboardData['analytics']['date_range']['end'] }}</small>
                 </div>
                 <div class="card-body">
-                    <canvas id="attendanceAnalyticsChart" height="120"></canvas>
+                    <canvas id="attendanceAnalyticsChart" height="110"></canvas>
                 </div>
             </div>
         </div>
-
-        <!-- Department Analytics Chart -->
-        <div class="col-md-4">
-            <div class="card">
+        <div class="col-lg-4">
+            <div class="card h-100">
                 <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-chart-pie me-2"></i>Department Breakdown
-                    </h5>
+                    <i class="fas fa-chart-pie me-2 text-primary"></i>Department Breakdown
                 </div>
                 <div class="card-body">
-                    <canvas id="departmentChart" height="200"></canvas>
+                    <canvas id="departmentChart" height="220"></canvas>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Leave Statistics & Hiring Trends -->
-    <div class="row mb-4">
-        <!-- Leave Statistics -->
-        <div class="col-md-6">
-            <div class="card">
+    <div class="row g-3 mb-4">
+        <!-- Leave statistics -->
+        <div class="col-lg-6">
+            <div class="card h-100">
                 <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-calendar-alt me-2"></i>Leave Statistics
-                    </h5>
+                    <i class="fas fa-calendar-alt me-2 text-primary"></i>Leave Statistics
                 </div>
                 <div class="card-body">
-                    <div class="row text-center">
+                    <div class="row text-center g-3">
                         <div class="col-3">
-                            <div class="h4 text-success">{{ $dashboardData['leave_statistics']['approved'] }}</div>
+                            <div class="h3 fw-bold text-success mb-0">{{ $dashboardData['leave_statistics']['approved'] }}</div>
                             <div class="small text-muted">Approved</div>
                         </div>
                         <div class="col-3">
-                            <div class="h4 text-warning">{{ $dashboardData['leave_statistics']['pending'] }}</div>
+                            <div class="h3 fw-bold text-warning mb-0">{{ $dashboardData['leave_statistics']['pending'] }}</div>
                             <div class="small text-muted">Pending</div>
                         </div>
                         <div class="col-3">
-                            <div class="h4 text-danger">{{ $dashboardData['leave_statistics']['rejected'] }}</div>
+                            <div class="h3 fw-bold text-danger mb-0">{{ $dashboardData['leave_statistics']['rejected'] }}</div>
                             <div class="small text-muted">Rejected</div>
                         </div>
                         <div class="col-3">
-                            <div class="h4 text-info">{{ $dashboardData['leave_statistics']['total_days'] }}</div>
+                            <div class="h3 fw-bold text-info mb-0">{{ $dashboardData['leave_statistics']['total_days'] }}</div>
                             <div class="small text-muted">Total Days</div>
                         </div>
                     </div>
-                    <div class="mt-3">
-                        <small class="text-muted">
-                            <strong>Leave by Type:</strong>
-                            @foreach($dashboardData['leave_statistics']['by_type'] as $type => $count)
-                                <span class="badge bg-secondary me-1">{{ ucfirst($type) }}: {{ $count }}</span>
-                            @endforeach
-                        </small>
+                    <hr>
+                    <div>
+                        <span class="small text-muted d-block mb-2">Leave by type</span>
+                        @foreach($dashboardData['leave_statistics']['by_type'] as $type => $count)
+                            <span class="badge rounded-pill text-bg-light border me-1 mb-1">{{ ucfirst($type) }}: {{ $count }}</span>
+                        @endforeach
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Hiring Trends -->
-        <div class="col-md-6">
-            <div class="card">
+        <!-- Hiring trends -->
+        <div class="col-lg-6">
+            <div class="card h-100">
                 <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-chart-bar me-2"></i>Hiring Trends
-                    </h5>
+                    <i class="fas fa-chart-bar me-2 text-primary"></i>Hiring Trends
                 </div>
                 <div class="card-body">
-                    <canvas id="hiringTrendsChart" height="200"></canvas>
-                    <div class="mt-3">
-                        <div class="small text-muted">
-                            <strong>Total Hired:</strong> {{ $dashboardData['hiring_trends']['summary']['total_hired'] }}
-                        </div>
-                        <div class="small text-muted">
-                            <strong>Avg Monthly:</strong> {{ $dashboardData['hiring_trends']['summary']['avg_hiring_rate'] }}
-                        </div>
-                        <div class="small text-muted">
-                            <strong>Peak Month:</strong> {{ $dashboardData['hiring_trends']['summary']['peak_month'] }}
-                        </div>
+                    <canvas id="hiringTrendsChart" height="160"></canvas>
+                    <div class="d-flex gap-4 mt-3 small text-muted">
+                        <span><strong class="text-dark">{{ $dashboardData['analytics']['hiring_trends']['summary']['total_hired'] }}</strong> total hired</span>
+                        <span><strong class="text-dark">{{ $dashboardData['analytics']['hiring_trends']['summary']['avg_hiring_rate'] }}</strong> avg / month</span>
+                        <span><strong class="text-dark">{{ $dashboardData['analytics']['hiring_trends']['summary']['peak_month'] }}</strong> peak</span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 @endsection
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-// Global chart data
 let attendanceData = {{ json_encode($dashboardData['analytics']['attendance_analytics']) }};
 let departmentData = {{ json_encode($dashboardData['analytics']['department_analytics']) }};
 let hiringData = {{ json_encode($dashboardData['analytics']['hiring_trends']) }};
 
-// Attendance Analytics Chart
-const attendanceCtx = document.getElementById('attendanceAnalyticsChart').getContext('2d');
-const attendanceChart = new Chart(attendanceCtx, {
+const attendanceChart = new Chart(document.getElementById('attendanceAnalyticsChart'), {
     type: 'line',
     data: attendanceData,
     options: {
         responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                display: true,
-                position: 'bottom'
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    stepSize: 1
-                }
-            }
-        }
+        plugins: { legend: { position: 'bottom' } },
+        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
     }
 });
 
-// Department Chart
-const departmentCtx = document.getElementById('departmentChart').getContext('2d');
-const departmentChart = new Chart(departmentCtx, {
+const departmentChart = new Chart(document.getElementById('departmentChart'), {
     type: 'doughnut',
     data: departmentData,
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                display: true,
-                position: 'bottom'
-            }
-        }
-    }
+    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
 });
 
-// Hiring Trends Chart
-const hiringCtx = document.getElementById('hiringTrendsChart').getContext('2d');
-const hiringChart = new Chart(hiringCtx, {
+const hiringChart = new Chart(document.getElementById('hiringTrendsChart'), {
     type: 'bar',
     data: hiringData,
     options: {
         responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                display: true,
-                position: 'bottom'
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    stepSize: 1
-                }
-            }
-        }
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
     }
 });
 
-// Update dashboard function
 function updateDashboard() {
     const form = document.getElementById('dashboardFilters');
-    const formData = new FormData(form);
-    
-    const params = new URLSearchParams(formData);
+    const params = new URLSearchParams(new FormData(form));
     const url = new URL(window.location);
-    
-    // Update URL without page reload
     url.search = params.toString();
     window.history.pushState({}, '', url);
-    
-    // Reload charts with new data
     loadCharts();
 }
 
-// Load charts with current filters
 function loadCharts() {
     const period = document.getElementById('period').value || 'month';
     const department = document.getElementById('department').value || '';
     const year = document.getElementById('year').value || '';
-    
-    // Make AJAX request to get updated data
+
     fetch(`/api/dashboard/advanced?period=${period}&department=${department}&year=${year}`, {
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -326,92 +239,30 @@ function loadCharts() {
     })
     .then(response => response.json())
     .then(data => {
-        if (data.success) {
-            // Update global chart data
-            attendanceData = data.data.analytics.attendance_analytics;
-            departmentData = data.data.analytics.department_analytics;
-            hiringData = data.data.analytics.hiring_trends;
-            
-            // Update charts
-            attendanceChart.data = attendanceData;
-            attendanceChart.update();
-            
-            departmentChart.data = departmentData;
-            departmentChart.update();
-            
-            hiringChart.data = hiringData;
-            hiringChart.update();
-            
-            // Update stats cards
-            updateStatsCards(data.data);
-        } else {
-            console.error('Failed to load dashboard data:', data.message);
-        }
+        if (!data.success) return;
+
+        attendanceData = data.data.analytics.attendance_analytics;
+        departmentData = data.data.analytics.department_analytics;
+        hiringData = data.data.analytics.hiring_trends;
+
+        attendanceChart.data = attendanceData;
+        attendanceChart.update();
+        departmentChart.data = departmentData;
+        departmentChart.update();
+        hiringChart.data = hiringData;
+        hiringChart.update();
+
+        document.getElementById('statTotalEmployees').textContent = data.data.total_employees;
+        document.getElementById('statActive').textContent = data.data.active_inactive_employees.active;
+        document.getElementById('statActiveBar').style.width = data.data.active_inactive_employees.active_percentage + '%';
+        document.getElementById('statPresent').textContent = data.data.attendance_summary.today.present;
+        document.getElementById('statPendingLeaves').textContent = data.data.leave_statistics.pending;
     })
     .catch(error => console.error('Error loading dashboard:', error));
 }
 
-// Update statistics cards
-function updateStatsCards(data) {
-    // Update total employees
-    const totalEmployeesCard = document.querySelector('.bg-primary .h3');
-    if (totalEmployeesCard) {
-        totalEmployeesCard.textContent = data.total_employees;
-    }
-    
-    // Update active/inactive stats
-    const activeCard = document.querySelector('.bg-success .h3');
-    const activeProgressBar = document.querySelector('.bg-success .progress-bar');
-    if (activeCard && activeProgressBar) {
-        activeCard.textContent = data.active_inactive_employees.active;
-        activeProgressBar.style.width = data.active_inactive_employees.active_percentage + '%';
-    }
-}
-
-// Refresh dashboard
 function refreshDashboard() {
     loadCharts();
 }
-
-// Initialize charts on page load
-document.addEventListener('DOMContentLoaded', function() {
-    loadCharts();
-});
 </script>
-
-<style>
-.card {
-    border: none;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.card-header {
-    border-radius: 10px 10px 0 0;
-    font-weight: 600;
-}
-
-.progress {
-    background-color: #e9ecef;
-    border-radius: 5px;
-}
-
-.form-select {
-    border-radius: 5px;
-    border: 1px solid #dee2e6;
-}
-
-.form-select:focus {
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-}
-
-.bg-primary, .bg-success, .bg-info {
-    transition: transform 0.2s;
-}
-
-.bg-primary:hover, .bg-success:hover, .bg-info:hover {
-    transform: translateY(-2px);
-}
-</style>
 @endpush

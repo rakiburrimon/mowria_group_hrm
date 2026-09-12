@@ -30,11 +30,17 @@ class LoginController extends Controller
         if (Auth::attempt($credentials, $request->filled('remember'))) {
             $request->session()->regenerate();
 
-            // Log the login event for audit and tracing
-            activity()->causedBy(Auth::user())->log('user logged in');
+            $user = Auth::user();
 
-            // Redirect to intended URL or dashboard
-            return redirect()->intended(route('dashboard.private'));
+            // Log the login event for audit and tracing
+            activity()->performedOn($user)->causedBy($user)->log('user logged in');
+
+            // Admins land on the admin dashboard; everyone else on their own panel
+            $defaultRoute = $user->hasAnyRole(['admin', 'super_admin'])
+                ? route('dashboard.admin')
+                : route('dashboard.private');
+
+            return redirect()->intended($defaultRoute);
         }
 
         return back()->withErrors([
@@ -53,7 +59,7 @@ class LoginController extends Controller
 
         // Log the logout event for audit and tracing
         if ($user) {
-            activity()->causedBy($user)->log('user logged out');
+            activity()->performedOn($user)->causedBy($user)->log('user logged out');
         }
 
         $request->session()->invalidate();

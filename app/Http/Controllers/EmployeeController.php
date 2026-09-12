@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\DataTables\EmployeesDataTable;
 use App\Http\Requests\Employee\StoreEmployeeRequest;
 use App\Http\Requests\Employee\UpdateEmployeeRequest;
 use App\Http\Requests\Employee\UploadProfileImageRequest;
@@ -24,14 +25,13 @@ class EmployeeController extends Controller
     ) {}
 
     /**
-     * Display a listing of employees.
+     * Display a listing of employees (server-side DataTable).
      */
-    public function index(Request $request): View
+    public function index(EmployeesDataTable $dataTable)
     {
-        $employees = $this->employees->paginate($request->all());
         $departments = $this->departments->active();
 
-        return view('employees.index', compact('employees', 'departments'));
+        return $dataTable->render('employees.index', compact('departments'));
     }
 
     /**
