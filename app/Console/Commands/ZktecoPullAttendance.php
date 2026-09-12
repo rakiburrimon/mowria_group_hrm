@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Log;
  *
  * Usage:
  *   php artisan attendance:pull
- *   php artisan attendance:pull --ip=192.168.1.201 --port=4370
+ *   php artisan attendance:pull --ip=192.168.31.210 --port=4370
  *   php artisan attendance:pull --dry          # preview without writing
  *   php artisan attendance:pull --clear        # clear device logs after sync
  */
@@ -33,7 +33,7 @@ class ZktecoPullAttendance extends Command
 
     public function handle(): int
     {
-        $ip = $this->option('ip') ?: Setting::get('zkteco_ip', '192.168.1.201');
+        $ip = $this->option('ip') ?: Setting::get('zkteco_ip', '192.168.31.210');
         $port = (int) ($this->option('port') ?: Setting::get('zkteco_port', 4370));
         $timeout = (int) Setting::get('zkteco_timeout', 5);
 

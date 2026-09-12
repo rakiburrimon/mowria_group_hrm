@@ -42,7 +42,7 @@ class SettingSeeder extends Seeder
         ['key' => 'maintenance_mode',          'value' => '0',   'group' => 'system', 'label' => 'Maintenance Mode',          'type' => 'boolean'],
 
         // Attendance device (ZKTeco terminal)
-        ['key' => 'zkteco_ip',      'value' => '192.168.1.201', 'group' => 'device', 'label' => 'Device IP Address', 'type' => 'string'],
+        ['key' => 'zkteco_ip',      'value' => '192.168.31.210', 'group' => 'device', 'label' => 'Device IP Address', 'type' => 'string'],
         ['key' => 'zkteco_port',    'value' => '4370',          'group' => 'device', 'label' => 'Device Port',       'type' => 'number'],
         ['key' => 'zkteco_timeout', 'value' => '5',             'group' => 'device', 'label' => 'Timeout (seconds)', 'type' => 'number'],
 

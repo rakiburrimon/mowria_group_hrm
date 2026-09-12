@@ -65,7 +65,7 @@ class ZktecoSetUser extends Command
         }
 
         $client = new ZktecoClient(
-            $this->option('ip') ?: Setting::get('zkteco_ip', '192.168.1.201'),
+            $this->option('ip') ?: Setting::get('zkteco_ip', '192.168.31.210'),
             (int) ($this->option('port') ?: Setting::get('zkteco_port', 4370)),
             (int) Setting::get('zkteco_timeout', 5),
         );
