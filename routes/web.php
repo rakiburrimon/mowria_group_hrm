@@ -8,6 +8,8 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\RoleController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -97,4 +99,24 @@ Route::middleware(['auth', 'permission:activity-logs.view'])->prefix('activity-l
 Route::middleware(['auth', 'permission:settings.manage'])->prefix('settings')->group(function () {
     Route::get('/', [SettingController::class, 'index'])->name('settings.index');
     Route::put('/', [SettingController::class, 'update'])->name('settings.update');
+});
+
+// Departments (requires authentication + permission)
+Route::middleware(['auth', 'permission:departments.manage'])->prefix('departments')->group(function () {
+    Route::get('/', [DepartmentController::class, 'index'])->name('departments.index');
+    Route::get('/create', [DepartmentController::class, 'create'])->name('departments.create');
+    Route::post('/', [DepartmentController::class, 'store'])->name('departments.store');
+    Route::get('/{department}/edit', [DepartmentController::class, 'edit'])->name('departments.edit');
+    Route::put('/{department}', [DepartmentController::class, 'update'])->name('departments.update');
+    Route::delete('/{department}', [DepartmentController::class, 'destroy'])->name('departments.destroy');
+});
+
+// Roles & Permissions (requires authentication + permission)
+Route::middleware(['auth', 'permission:roles.manage'])->prefix('roles')->group(function () {
+    Route::get('/', [RoleController::class, 'index'])->name('roles.index');
+    Route::get('/create', [RoleController::class, 'create'])->name('roles.create');
+    Route::post('/', [RoleController::class, 'store'])->name('roles.store');
+    Route::get('/{role}/edit', [RoleController::class, 'edit'])->name('roles.edit');
+    Route::put('/{role}', [RoleController::class, 'update'])->name('roles.update');
+    Route::delete('/{role}', [RoleController::class, 'destroy'])->name('roles.destroy');
 });

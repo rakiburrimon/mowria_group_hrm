@@ -49,7 +49,7 @@ class AttendancesDataTable extends DataTable
                 return '<div class="btn-group btn-group-sm">'
                     . '<a href="' . route('attendance.show', $a->id) . '" class="btn btn-sm btn-outline-primary" title="View"><i class="fas fa-eye"></i></a>'
                     . '<a href="' . route('attendance.edit', $a->id) . '" class="btn btn-sm btn-outline-warning" title="Edit"><i class="fas fa-edit"></i></a>'
-                    . '<button type="button" class="btn btn-sm btn-outline-danger" title="Delete" onclick="deleteAttendance(' . $a->id . ', \'' . route('attendance.destroy', $a->id) . '\')"><i class="fas fa-trash"></i></button>'
+                    . '<button type="button" class="btn btn-sm btn-outline-danger" title="Delete" onclick="confirmDelete(\'' . route('attendance.destroy', $a->id) . '\', \'Delete Attendance\', \'Delete this attendance record? This action cannot be undone.\')"><i class="fas fa-trash"></i></button>'
                     . '</div>';
             })
             ->rawColumns(['employee', 'department', 'check_in', 'check_out', 'work_hours', 'late_minutes', 'early_leave_minutes', 'status', 'action'])

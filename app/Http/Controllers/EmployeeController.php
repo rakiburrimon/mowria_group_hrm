@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\DataTables\EmployeesDataTable;
 use App\Http\Requests\Employee\StoreEmployeeRequest;
 use App\Http\Requests\Employee\UpdateEmployeeRequest;
+use App\Http\Requests\Employee\UpdateEmployeeStatusRequest;
 use App\Http\Requests\Employee\UploadProfileImageRequest;
 use App\Models\Employee;
 use App\Services\DepartmentService;
@@ -158,18 +159,10 @@ class EmployeeController extends Controller
     /**
      * Update employee status
      */
-    public function updateStatus(Request $request, Employee $employee): JsonResponse
+    public function updateStatus(UpdateEmployeeStatusRequest $request, Employee $employee): JsonResponse
     {
         return $this->handleService(function () use ($request, $employee) {
-            $request->validate([
-                'status' => 'required|in:' . implode(',', [
-                    Employee::STATUS_ACTIVE,
-                    Employee::STATUS_INACTIVE,
-                    Employee::STATUS_TERMINATED
-                ])
-            ]);
-
-            $this->employees->updateStatus($employee, $request->get('status'));
+            $this->employees->updateStatus($employee, $request->validated('status'));
 
             return response()->json([
                 'success' => true,

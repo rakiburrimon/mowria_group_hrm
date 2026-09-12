@@ -35,7 +35,7 @@ class LeavesDataTable extends DataTable
 
                 if ($leave->status === Leave::STATUS_PENDING) {
                     $buttons .= '<a href="' . route('leaves.edit', $leave->id) . '" class="btn btn-sm btn-outline-warning" title="Edit"><i class="fas fa-edit"></i></a>'
-                        . '<button type="button" class="btn btn-sm btn-outline-danger" title="Cancel" onclick="cancelLeave(' . $leave->id . ', \'' . route('leaves.destroy', $leave->id) . '\')"><i class="fas fa-times"></i></button>';
+                        . '<button type="button" class="btn btn-sm btn-outline-danger" title="Cancel" onclick="confirmDelete(\'' . route('leaves.destroy', $leave->id) . '\', \'Cancel Leave Request\', \'Cancel this leave request? This action cannot be undone.\')"><i class="fas fa-times"></i></button>';
                 }
 
                 return $buttons . '</div>';

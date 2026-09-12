@@ -295,10 +295,10 @@
                 </a>
 
                 <div class="sidebar-section">System</div>
-                <a class="sidebar-link" href="#">
+                <a class="sidebar-link {{ request()->routeIs('departments.*') ? 'active' : '' }}" href="{{ route('departments.index') }}">
                     <i class="fas fa-building"></i> Departments
                 </a>
-                <a class="sidebar-link" href="#">
+                <a class="sidebar-link {{ request()->routeIs('roles.*') ? 'active' : '' }}" href="{{ route('roles.index') }}">
                     <i class="fas fa-user-shield"></i> Roles &amp; Permissions
                 </a>
                 <a class="sidebar-link {{ request()->routeIs('activity-logs.*') ? 'active' : '' }}" href="{{ route('activity-logs.index') }}">
@@ -373,6 +373,29 @@
         ];
     @endphp
 
+    <!-- Delete / destructive action confirmation modal -->
+    <div class="modal fade" id="confirmActionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content">
+                <div class="modal-body text-center p-4">
+                    <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style="width:64px;height:64px;background:#fee2e2;">
+                        <i class="fas fa-exclamation-triangle fa-2x text-danger"></i>
+                    </div>
+                    <h5 class="mb-1" id="confirmActionTitle">Confirm Delete</h5>
+                    <p class="text-muted mb-4" id="confirmActionMessage">Are you sure?</p>
+                    <form id="confirmActionForm" method="POST">
+                        @csrf
+                        <input type="hidden" name="_method" value="DELETE" id="confirmActionMethod">
+                        <div class="d-flex gap-2 justify-content-center">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-danger" id="confirmActionBtn">Yes, Delete</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast notifications -->
     <div class="toast-container position-fixed p-3 {{ $toastPositions[$toastPosition] ?? 'top-0 end-0' }}" id="toastContainer" style="z-index: 2000;"></div>
 
@@ -393,6 +416,44 @@
         backdrop.addEventListener('click', () => {
             sidebar.classList.remove('show');
             backdrop.classList.remove('show');
+        });
+
+        // Global confirm modal state
+        let confirmActionModal;
+        let confirmActionCallback = null;
+
+        /**
+         * Open the confirm modal to submit a DELETE form to the given URL.
+         */
+        function confirmDelete(url, title = 'Delete Record', message = 'Are you sure you want to delete this record? This action cannot be undone.') {
+            openConfirmModal(url, title, message, 'Yes, Delete', null);
+        }
+
+        /**
+         * Open the confirm modal with a custom action — used for non-delete
+         * flows (e.g. removing a profile image flag before save).
+         */
+        function confirmAction(title, message, btnText, callback) {
+            openConfirmModal(null, title, message, btnText || 'Confirm', callback);
+        }
+
+        function openConfirmModal(url, title, message, btnText, callback) {
+            document.getElementById('confirmActionTitle').textContent = title;
+            document.getElementById('confirmActionMessage').textContent = message;
+            document.getElementById('confirmActionBtn').textContent = btnText;
+            document.getElementById('confirmActionForm').action = url || '';
+            confirmActionCallback = callback;
+            confirmActionModal = confirmActionModal || new bootstrap.Modal(document.getElementById('confirmActionModal'));
+            confirmActionModal.show();
+        }
+
+        // When a callback is set, run it instead of submitting the form
+        document.getElementById('confirmActionForm').addEventListener('submit', function (e) {
+            if (confirmActionCallback) {
+                e.preventDefault();
+                confirmActionModal.hide();
+                confirmActionCallback();
+            }
         });
 
         // Toaster settings (from the settings page)

@@ -22,8 +22,9 @@ class UpdateDepartmentRequest extends FormRequest
      */
     public function rules(): array
     {
-        $departmentId = $this->route('department');
-        
+        // Route model binding returns the Department model — use its id
+        $departmentId = $this->route('department')?->id ?? $this->route('department');
+
         return [
             'name' => 'required|string|max:255|unique:departments,name,' . $departmentId,
             'description' => 'nullable|string|max:1000',

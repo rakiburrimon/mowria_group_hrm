@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Setting\UpdateSettingsRequest;
 use App\Models\Setting;
 use App\Traits\HandlesServiceExceptions;
 use App\Traits\LogsActions;
-use Illuminate\Http\Request;
 
 class SettingController extends Controller
 {
@@ -25,12 +25,10 @@ class SettingController extends Controller
     /**
      * Update settings from the submitted form.
      */
-    public function update(Request $request)
+    public function update(UpdateSettingsRequest $request)
     {
         return $this->handleService(function () use ($request) {
-            // Only accept keys that exist as settings
-            $keys = Setting::pluck('key')->all();
-            $data = $request->only($keys);
+            $data = $request->validated();
 
             foreach ($data as $key => $value) {
                 $setting = Setting::where('key', $key)->first();

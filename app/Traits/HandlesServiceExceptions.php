@@ -2,6 +2,7 @@
 
 namespace App\Traits;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -15,7 +16,12 @@ use Illuminate\Http\RedirectResponse;
 trait HandlesServiceExceptions
 {
     /**
-     * Execute a service call and handle any thrown exception.
+     * Execute a service call inside a database transaction and handle
+     * any thrown exception.
+     *
+     * All writes run atomically — on exception the transaction rolls back,
+     * the error is logged, and an appropriate JSON or redirect response
+     * is returned.
      *
      * @param callable $callback The service call to execute
      * @param string $errorMessage Fallback message for the response
@@ -24,7 +30,7 @@ trait HandlesServiceExceptions
     protected function handleService(callable $callback, string $errorMessage = 'An error occurred'): mixed
     {
         try {
-            return $callback();
+            return DB::transaction($callback);
         } catch (\Throwable $e) {
             Log::error($errorMessage, [
                 'exception' => $e->getMessage(),

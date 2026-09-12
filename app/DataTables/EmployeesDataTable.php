@@ -47,7 +47,7 @@ class EmployeesDataTable extends DataTable
                 return '<div class="btn-group btn-group-sm">'
                     . '<a href="' . $show . '" class="btn btn-sm btn-outline-primary" title="View"><i class="fas fa-eye"></i></a>'
                     . '<a href="' . $edit . '" class="btn btn-sm btn-outline-warning" title="Edit"><i class="fas fa-edit"></i></a>'
-                    . '<button type="button" class="btn btn-sm btn-outline-danger" title="Delete" onclick="deleteEmployee(' . $employee->id . ', \'' . $delete . '\')"><i class="fas fa-trash"></i></button>'
+                    . '<button type="button" class="btn btn-sm btn-outline-danger" title="Delete" onclick="confirmDelete(\'' . $delete . '\', \'Delete Employee\', \'Delete ' . e($employee->full_name) . '? This action cannot be undone.\')"><i class="fas fa-trash"></i></button>'
                     . '</div>';
             })
             ->rawColumns(['photo', 'full_name', 'department', 'employee_id', 'status', 'action'])

@@ -202,19 +202,6 @@
 @push('scripts')
 {{ $dataTable->scripts() }}
 <script>
-function deleteAttendance(id, url) {
-    if (!confirm('Are you sure you want to delete this attendance record?')) {
-        return;
-    }
-
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = url;
-    form.innerHTML = '@csrf<input type="hidden" name="_method" value="DELETE">';
-    document.body.appendChild(form);
-    form.submit();
-}
-
 function checkIn() {
     fetch('{{ route('attendance.checkIn') }}', {
         method: 'POST',

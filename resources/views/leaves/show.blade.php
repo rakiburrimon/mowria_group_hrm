@@ -180,12 +180,10 @@
                                 <a href="{{ route('leaves.edit', $leave->id) }}" class="btn btn-warning">
                                     <i class="fas fa-edit me-1"></i> Edit Request
                                 </a>
-                                <form method="POST" action="{{ route('leaves.destroy', $leave->id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to cancel this leave request?')">
-                                    @csrf
-                                    <button type="submit" class="btn btn-danger">
-                                        <i class="fas fa-times me-1"></i> Cancel Request
-                                    </button>
-                                </form>
+                                <button type="button" class="btn btn-danger"
+                                        onclick="confirmDelete('{{ route('leaves.destroy', $leave->id) }}', 'Cancel Leave Request', 'Cancel this leave request? This action cannot be undone.')">
+                                    <i class="fas fa-times me-1"></i> Cancel Request
+                                </button>
                             </div>
                         </div>
                     </div>

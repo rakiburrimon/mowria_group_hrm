@@ -225,10 +225,12 @@
                                              class="rounded-circle" 
                                              style="width: 60px; height: 60px; object-fit: cover;">
                                         <div>
-                                            <button type="button" 
-                                                    class="btn btn-sm btn-outline-danger" 
-                                                    onclick="confirm('Are you sure you want to remove the current profile image?') ? 
-                                                        document.getElementById('remove_current_image').value = '1' : ''">
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    onclick="confirmAction('Remove Profile Image', 'Remove the current profile image? The change applies when you save.', 'Yes, Remove', function() {
+                                                        document.getElementById('remove_current_image').value = '1';
+                                                        showToast('info', 'Profile image will be removed when you save.');
+                                                    })">
                                                 <i class="fas fa-trash me-1"></i> Remove Current
                                             </button>
                                             <input type="hidden" name="remove_current_image" id="remove_current_image" value="0">

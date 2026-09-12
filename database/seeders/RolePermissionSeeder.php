@@ -60,6 +60,9 @@ class RolePermissionSeeder extends Seeder
 
         // Settings
         ['slug' => 'settings.manage', 'name' => 'Manage application settings'],
+
+        // Roles & permissions
+        ['slug' => 'roles.manage', 'name' => 'Manage roles and permissions'],
     ];
 
     /**
@@ -94,6 +97,7 @@ class RolePermissionSeeder extends Seeder
                 'admin.dashboard',
                 'activity-logs.view',
                 'settings.manage',
+                'roles.manage',
             ],
             User::ROLE_EMPLOYEE => [
                 'employees.view.own',
