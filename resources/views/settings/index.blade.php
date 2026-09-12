@@ -17,6 +17,7 @@
                 'general' => 'fa-cog',
                 'system' => 'fa-server',
                 'notifications' => 'fa-bell',
+                'device' => 'fa-fingerprint',
             ];
         @endphp
 

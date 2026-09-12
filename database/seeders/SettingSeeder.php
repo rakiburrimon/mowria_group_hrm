@@ -41,6 +41,11 @@ class SettingSeeder extends Seeder
         ['key' => 'enable_email_notifications','value' => '1',   'group' => 'system', 'label' => 'Enable Email Notifications','type' => 'boolean'],
         ['key' => 'maintenance_mode',          'value' => '0',   'group' => 'system', 'label' => 'Maintenance Mode',          'type' => 'boolean'],
 
+        // Attendance device (ZKTeco terminal)
+        ['key' => 'zkteco_ip',      'value' => '192.168.1.201', 'group' => 'device', 'label' => 'Device IP Address', 'type' => 'string'],
+        ['key' => 'zkteco_port',    'value' => '4370',          'group' => 'device', 'label' => 'Device Port',       'type' => 'number'],
+        ['key' => 'zkteco_timeout', 'value' => '5',             'group' => 'device', 'label' => 'Timeout (seconds)', 'type' => 'number'],
+
         // Notifications / toaster
         ['key' => 'toast_position',   'value' => 'top-right', 'group' => 'notifications', 'label' => 'Toast Position',     'type' => 'select', 'options' => 'top-right,top-left,top-center,bottom-right,bottom-left'],
         ['key' => 'toast_delay',      'value' => '4000',      'group' => 'notifications', 'label' => 'Toast Delay (ms)',   'type' => 'number'],

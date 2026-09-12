@@ -76,6 +76,20 @@
                                     </div>
                                 @enderror
                             </div>
+                            <div class="col-md-6">
+                                <label for="device_user_id" class="form-label">Device PIN <small class="text-muted">(attendance terminal)</small></label>
+                                <input type="number" 
+                                       name="device_user_id" 
+                                       id="device_user_id" 
+                                       class="form-control @error('device_user_id') ? 'is-invalid' : ''" 
+                                       value="{{ old('device_user_id') }}" 
+                                       placeholder="PIN on the ZKTeco device">
+                                @error('device_user_id')
+                                    <div class="invalid-feedback">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
+                            </div>
                         </div>
 
                         <div class="row mb-3">
