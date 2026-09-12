@@ -18,6 +18,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => CheckPermission::class,
             'role' => CheckRole::class,
         ]);
+
+        // The ZKTeco device POSTs without a CSRF token
+        $middleware->validateCsrfTokens(except: [
+            'iclock/*',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\DeviceCommand;
 use App\Models\Setting;
 use App\Services\Zkteco\ZktecoClient;
 use Illuminate\Console\Command;
@@ -9,15 +10,21 @@ use Illuminate\Console\Command;
 /**
  * Delete a user from the ZKTeco device by PIN.
  *
+ * Default: queues a DATA DELETE USERINFO command the device fetches on its
+ * next /iclock/getrequest poll. --socket deletes directly over UDP 4370.
+ *
  * Usage:
  *   php artisan zkteco:user-delete --pin=101
+ *   php artisan zkteco:user-delete --pin=101 --socket --ip=192.168.1.201
  */
 class ZktecoDeleteUser extends Command
 {
     protected $signature = 'zkteco:user-delete
                             {--pin= : Numeric PIN of the device user to delete}
-                            {--ip= : Device IP}
-                            {--port= : Device port}';
+                            {--sn= : Target device serial (blank = any device)}
+                            {--socket : Delete directly via UDP 4370 instead of queueing}
+                            {--ip= : Device IP (socket mode)}
+                            {--port= : Device port (socket mode)}';
 
     protected $description = 'Delete a user from the ZKTeco device';
 
@@ -35,14 +42,34 @@ class ZktecoDeleteUser extends Command
             return self::SUCCESS;
         }
 
+        if ($this->option('socket')) {
+            return $this->socketMode((int) $pin);
+        }
+
+        DeviceCommand::create([
+            'device_sn' => $this->option('sn'),
+            'command' => "DATA DELETE USERINFO PIN={$pin}",
+        ]);
+
+        $this->info("Queued: delete user {$pin} — applied on the device's next poll.");
+
+        activity()->withProperties(['pin' => (int) $pin])
+            ->log('zkteco device user delete queued');
+
+        return self::SUCCESS;
+    }
+
+    private function socketMode(int $pin): int
+    {
         $client = new ZktecoClient(
-            $this->option('ip') ?: Setting::get('zkteco_ip', '192.168.31.210'),
+            $this->option('ip') ?: Setting::get('zkteco_ip', '192.168.1.201'),
             (int) ($this->option('port') ?: Setting::get('zkteco_port', 4370)),
             (int) Setting::get('zkteco_timeout', 5),
         );
 
         try {
-            $client->deleteUser((int) $pin);
+            $client->deleteUser($pin);
+            $client->disconnect();
         } catch (\Throwable $e) {
             $this->error('Failed: ' . $e->getMessage());
 
@@ -50,11 +77,6 @@ class ZktecoDeleteUser extends Command
         }
 
         $this->info("User {$pin} deleted from the device.");
-
-        activity()->withProperties(['pin' => (int) $pin])
-            ->log('zkteco device user deleted');
-
-        $client->disconnect();
 
         return self::SUCCESS;
     }

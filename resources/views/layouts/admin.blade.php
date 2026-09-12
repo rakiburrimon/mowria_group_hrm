@@ -304,6 +304,9 @@
                 <a class="sidebar-link {{ request()->routeIs('activity-logs.*') ? 'active' : '' }}" href="{{ route('activity-logs.index') }}">
                     <i class="fas fa-history"></i> Activity Log
                 </a>
+                <a class="sidebar-link {{ request()->routeIs('device.*') ? 'active' : '' }}" href="{{ route('device.index') }}">
+                    <i class="fas fa-fingerprint"></i> Device
+                </a>
                 <a class="sidebar-link {{ request()->routeIs('settings.*') ? 'active' : '' }}" href="{{ route('settings.index') }}">
                     <i class="fas fa-cog"></i> Settings
                 </a>

@@ -63,6 +63,9 @@ class RolePermissionSeeder extends Seeder
 
         // Roles & permissions
         ['slug' => 'roles.manage', 'name' => 'Manage roles and permissions'],
+
+        // Attendance device
+        ['slug' => 'device.manage', 'name' => 'Manage attendance device'],
     ];
 
     /**
@@ -98,6 +101,7 @@ class RolePermissionSeeder extends Seeder
                 'activity-logs.view',
                 'settings.manage',
                 'roles.manage',
+                'device.manage',
             ],
             User::ROLE_EMPLOYEE => [
                 'employees.view.own',

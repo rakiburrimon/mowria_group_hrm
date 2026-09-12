@@ -27,7 +27,8 @@ class ZktecoPullAttendance extends Command
                             {--ip= : Device IP (defaults to zkteco_ip setting)}
                             {--port= : Device port (defaults to zkteco_port setting)}
                             {--dry : Show what would be synced without writing}
-                            {--clear : Clear the attendance log on the device after a successful sync}';
+                            {--clear : Clear the attendance log on the device after a successful sync}
+                            {--wait=0 : Keep retrying the connect for N seconds (use when the device sleeps)}';
 
     protected $description = 'Pull attendance logs from the ZKTeco device and sync them into the database';
 
@@ -40,12 +41,28 @@ class ZktecoPullAttendance extends Command
         $this->info("Connecting to ZKTeco device at {$ip}:{$port} …");
 
         $client = new ZktecoClient($ip, $port, $timeout);
+        $wait = (int) $this->option('wait');
+        $deadline = time() + $wait;
+        $logs = null;
+        $lastError = null;
 
-        try {
-            $logs = $client->getAttendance();
-        } catch (\Throwable $e) {
-            $this->error('Failed to pull attendance: ' . $e->getMessage());
-            Log::error('attendance:pull failed', ['error' => $e->getMessage()]);
+        // Retry the pull until the deadline — lets a sleeping device wake up
+        do {
+            try {
+                $logs = $client->getAttendance();
+                $lastError = null;
+            } catch (\Throwable $e) {
+                $lastError = $e;
+                if ($wait) {
+                    $this->output->write("\rRetrying… (device asleep or unreachable)   ");
+                    sleep(1);
+                }
+            }
+        } while ($logs === null && time() < $deadline);
+
+        if ($logs === null) {
+            $this->error('Failed to pull attendance: ' . $lastError->getMessage());
+            Log::error('attendance:pull failed', ['error' => $lastError->getMessage()]);
 
             return self::FAILURE;
         }

@@ -10,6 +10,8 @@ use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\IclockController;
+use App\Http\Controllers\DeviceController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -109,6 +111,24 @@ Route::middleware(['auth', 'permission:departments.manage'])->prefix('department
     Route::get('/{department}/edit', [DepartmentController::class, 'edit'])->name('departments.edit');
     Route::put('/{department}', [DepartmentController::class, 'update'])->name('departments.update');
     Route::delete('/{department}', [DepartmentController::class, 'destroy'])->name('departments.destroy');
+});
+
+// ZKTeco iclock push protocol — the device calls these directly (no auth/CSRF)
+Route::prefix('iclock')->group(function () {
+    Route::get('/cdata', [IclockController::class, 'handshake']);
+    Route::post('/cdata', [IclockController::class, 'push']);
+    Route::post('/registry', [IclockController::class, 'registry']);
+    Route::get('/getrequest', [IclockController::class, 'getRequest']);
+    Route::post('/devicecmd', [IclockController::class, 'deviceCmd']);
+    Route::get('/querydata', [IclockController::class, 'ping']);
+});
+
+// Attendance device (requires authentication + permission)
+Route::middleware(['auth', 'permission:device.manage'])->prefix('device')->group(function () {
+    Route::get('/', [DeviceController::class, 'index'])->name('device.index');
+    Route::post('/query-users', [DeviceController::class, 'queryUsers'])->name('device.queryUsers');
+    Route::post('/set-user', [DeviceController::class, 'setUser'])->name('device.setUser');
+    Route::post('/delete-user', [DeviceController::class, 'deleteUser'])->name('device.deleteUser');
 });
 
 // Roles & Permissions (requires authentication + permission)
